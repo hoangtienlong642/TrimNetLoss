@@ -1,5 +1,7 @@
 # Run (Long)
 ```sh
+git clone https://github.com/hoangtienlong642/TrimNetLoss.git
+
 cd ./TrimNetLoss/trimnet_drug/src
 
 python run.py --loss SPLC
