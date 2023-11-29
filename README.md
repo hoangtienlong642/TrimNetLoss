@@ -1,10 +1,10 @@
 # Run (Long)
-
+```sh
 cd ./TrimNetLoss/trimnet_drug/src
 
 python run.py --loss SPLC
 python run.py --loss Hill
-
+```
 
 
 # TrimNet
