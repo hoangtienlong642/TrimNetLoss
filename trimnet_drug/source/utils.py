@@ -8,7 +8,7 @@ from rdkit import Chem
 from rdkit.Chem.Scaffolds import MurckoScaffold
 from torch import nn
 from torch_geometric.utils import remove_self_loops
-
+import torch.nn.functional as F
 
 # binary class
 class FocalLoss(nn.Module):
@@ -130,10 +130,10 @@ class SPLC(nn.Module):
         """
 
     def __init__(self,
-                 tau: float = 0.6,
+                 tau: float = 0.9,
                  change_epoch: int = 1,
-                 margin: float = 1.0,
-                 gamma: float = 2.0,
+                 margin: float = 1,
+                 gamma: float = 0.1,
                  reduction: str = 'sum') -> None:
         super(SPLC, self).__init__()
         self.tau = tau
@@ -168,14 +168,14 @@ class SPLC(nn.Module):
         # if epoch >= self.change_epoch:
         targets = torch.where(
             torch.sigmoid(logits) > self.tau,
-            torch.tensor(1).cuda(), targets)
+            torch.tensor(1).cpu(), targets)  #if using cuda, change it to torch.tensor(1).cuda()
         
       
 
-        print(logits.size())
-            # print(pred_neg.size())
-            # print(pred_pos.size())   
-        print(targets.size())
+        # print(logits.size())
+        # print(pred_neg.size())
+        # print(pred_pos.size())   
+        # print(targets.size())
         
         pred = torch.sigmoid(logits)
 
@@ -184,7 +184,7 @@ class SPLC(nn.Module):
         focal_weight = pt**self.gamma
 
         los_pos = targets * F.logsigmoid(logits)
-        los_neg = (1 - targets) * F.logsigmoid(-logits)
+        los_neg = targets * F.logsigmoid(-logits) + (1 - targets) * F.logsigmoid(logits)
 
         loss = -(los_pos + los_neg)
         loss *= focal_weight

@@ -16,7 +16,7 @@ from utils import FocalLoss, Hill, AsymmetricLoss, SPLC
 class Trainer:
     def __init__(
         self,
-        loss,
+        lossfunc,
         option,
         model,
         train_dataset,
@@ -63,19 +63,19 @@ class Trainer:
                 )
         self.save_path = self.option["exp_path"]
         # Setting the Adam optimizer with hyper-param
-        if loss == "Focal":
+        if lossfunc == "Focal":
             self.log("Using FocalLoss")
             self.criterion = [AsymmetricLoss( gamma_neg=2, gamma_pos=2, clip=0, reduction = "mean") for w in weight]  # noqa: E501
-        elif loss == "Hill" :
+        elif lossfunc == "Hill" :
             self.log("Using Hill Loss")
             self.criterion = [Hill( reduction = "mean") for w in weight]
-        elif loss == "SPLC":
+        elif lossfunc == "SPLC":
             self.log("Using SPLC Loss")
             self.criterion = [SPLC( reduction = "mean") for w in weight]
-        elif loss == "BCE":
+        elif lossfunc == "BCE":
             self.log("Using BCE Loss")
             self.criterion = [AsymmetricLoss( gamma_neg=0, gamma_pos=0, clip=0, reduction = "mean") for w in weight]  # noqa: E501
-        elif loss == "Asl":
+        elif lossfunc == "Asl":
             self.log("Using Asymmetric Loss")
             self.criterion = [AsymmetricLoss( gamma_neg=4, gamma_pos=0, clip=0.05, reduction = "mean") for w in weight] 
         else:
@@ -151,8 +151,9 @@ class Trainer:
 
                 y_pred = y_pred[torch.tensor(validId).to(self.device)]
                 y_label = y_label[torch.tensor(validId).to(self.device)]
-
+                    
                 loss += self.criterion[i](y_pred, y_label)
+
                 y_pred = F.softmax(y_pred.detach().cpu(),
                                    dim=-1)[:, 1].view(-1).numpy()
                 try:
@@ -217,9 +218,9 @@ class Trainer:
 
                     y_pred = y_pred[torch.tensor(validId).to(self.device)]
                     y_label = y_label[torch.tensor(validId).to(self.device)]
-
+                    
                     loss = self.criterion[i](y_pred, y_label)
-
+              
                     y_pred = (
                         F.softmax(y_pred.detach().cpu(),
                                   dim=-1)[:, 1].view(-1).numpy()
